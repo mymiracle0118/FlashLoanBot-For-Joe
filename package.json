@@ -1,0 +1,22 @@
+{
+  "name": "mev-arbitrage-contracts",
+  "version": "1.0.0",
+  "description": "// This is where we will include the tutorial of how to set up the Flash Loan Bot A-Z afterwards.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.1.1",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
+    "hardhat": "^2.19.4"
+  }
+}
