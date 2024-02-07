@@ -2,6 +2,10 @@
 
 pragma solidity ^0.8.17;
 
+/// @dev Library for errors
+/// @notice This library is used to define error messages
+/// @dev May not need the uniswap custom errors
+
 library errorsLib {
         string internal constant OUT_OF_BLOCK = "Out of block";
         string internal constant NO_PROFIT = "No profit";
