@@ -128,7 +128,7 @@ contract Flashbot {
     )[1];
 
     // Revert if the receiced amount is less than required amount
-    require(amountReceived > amountRequired, 'Not enough receiced amount');
+    require(amountReceived > amountRequired, 'Not enough received amount');
 
     IERC20 otherToken = IERC20(buyToken);
 
