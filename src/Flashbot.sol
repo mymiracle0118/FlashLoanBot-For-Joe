@@ -29,7 +29,7 @@ contract Flashbot {
     address _targetRouter,
     address _sourceFactory
   ) external {
-    require(block.number <= _maxBlockNumber, "Out of block");
+    require(block.number <= _maxBlockNumber, "Out of block"); // be careful to use block.number here, especially if deploying across multiple chains
 
     // Recheck profitable
     (int profit, uint _tokenBorrowAmount) = checkProfitable(_tokenPay, _tokenSwap, _amountTokenPay, _sourceRouter, _targetRouter);
@@ -135,7 +135,7 @@ contract Flashbot {
     // callback should send the funds to the pair address back
     otherToken.transfer(msg.sender, amountRequired);
     // transfer the profit to the owner
-    otherToken.transfer(owner, amountReceived - amountRequired);
+    otherToken.transfer(owner, amountReceived - amountRequired); 
   }
 
   function pancakeCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
