@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.17;
+pragma solidity >=0.7.0 <0.9.0;
 
 import './library/UniswapV2Library.sol';
 import './interfaces/IERC20.sol';
@@ -24,7 +24,7 @@ contract Flashbot {
     uint _maxBlockNumber,
     address _tokenPay, // Source token
     address _tokenSwap, // Destination token that we get by swap from source token
-    address _amountTokenPay, // Gwei value of source token amount
+    uint _amountTokenPay, // Gwei value of source token amount
     address _sourceRouter,
     address _targetRouter,
     address _sourceFactory
@@ -51,7 +51,7 @@ contract Flashbot {
 
     IUniswapV2Pair(pairAddress).swap(
       _tokenSwap == token0 ? _tokenBorrowAmount : 0,
-      _tokenSwap == token1 ? _tokenPaymentAmount : 0,
+      _tokenSwap == token1 ? _tokenBorrowAmount : 0,
       address(this),
       abi.encode(_sourceRouter, _targetRouter)
     );
@@ -80,53 +80,15 @@ contract Flashbot {
       amountOut
     );
   }
-
-  function pancakeCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  function waultSwapCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  function uniswapV2Call(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  // mdex
-  function swapV2Call(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  // pantherswap
-  function pantherCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  // jetswap
-  function jetswapCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  // cafeswap
-  function cafeCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  function BiswapCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
-  function wardenCall(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    _execute(_sender, _amount0, _amount1, _data);
-  }
-
+  
   function _execute(
     address _sender,
     uint _amount0,
     uint _amount1,
     bytes calldata _data
   ) internal {
+
+    require(_sender == owner, 'Invalid Sender');
     // Get an amount of token that you have exchanged
     uint amountToken = _amount0 == 0 ? _amount1 : _amount0;
 
@@ -153,13 +115,13 @@ contract Flashbot {
     token.approve(targetRouter, amountToken);
 
     // Get the amount of needed input token
-    uint amountRequired = IUniswapV2Router02(sourceRouter).getAmountIn(amountToken, path2);
+    uint amountRequired = IUniswapV2Router02(sourceRouter).getAmountsIn(amountToken, path2)[0];
 
 
     // Swap token and get equivalent otherToken amountRequired as a result
     uint amountReceived = IUniswapV2Router02(targetRouter).swapExactTokensForTokens(
       amountToken,
-      aomuntRequired,
+      amountRequired,
       path1,
       address(this),
       block.timestamp + 60
@@ -174,6 +136,55 @@ contract Flashbot {
     otherToken.transfer(msg.sender, amountRequired);
     // transfer the profit to the owner
     otherToken.transfer(owner, amountReceived - amountRequired);
+  }
+
+  function pancakeCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  function waultSwapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  function uniswapV2Call(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  // mdex
+  function swapV2Call(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  // pantherswap
+  function pantherCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  // jetswap
+  function jetswapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  // cafeswap
+  function cafeCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  function BiswapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
+  }
+
+  function wardenCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+    address sender = msg.sender;
+    _execute(sender, _amount0, _amount1, _data);
   }
 
   receive() external payable {}
