@@ -1,5 +1,0 @@
-@openzeppelin/=node_modules/@openzeppelin/
-@aave/=node_modules/@aave/
-@forge-std/=test/forge-std/src/
-@src/=src/
-@test/=test/
