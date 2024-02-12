@@ -4,7 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import './library/UniswapV2Library.sol';
 import './interfaces/IERC20.sol';
-import './interfaces/IUniswapV2Pair.sol';
+//import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Router02.sol';
 
