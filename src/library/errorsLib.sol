@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.17;
+pragma solidity >=0.7.0 <0.9.0;
 
 /// @dev Library for errors
 /// @notice This library is used to define error messages

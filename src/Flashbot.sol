@@ -3,6 +3,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import './library/UniswapV2Library.sol';
+import './library/errorsLib.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
@@ -15,6 +16,8 @@ import './interfaces/IUniswapV2Router02.sol';
 contract Flashbot {
 
   address public owner;
+  event SwapSuccess(address indexed fromToken, address indexed toToken, uint256 inAmount);
+  event IsProfit(int profit, uint amountOut);
 
   constructor() {
     owner = msg.sender;
@@ -29,25 +32,26 @@ contract Flashbot {
     address _targetRouter,
     address _sourceFactory
   ) external {
-    require(block.number <= _maxBlockNumber, "Out of block"); // be careful to use block.number here, especially if deploying across multiple chains
+    require(block.number <= _maxBlockNumber, errorsLib.OUT_OF_BLOCK);
 
     // Recheck profitable
     (int profit, uint _tokenBorrowAmount) = checkProfitable(_tokenPay, _tokenSwap, _amountTokenPay, _sourceRouter, _targetRouter);
 
     // Revert if no profit
-    require(profit > 0, 'No profit');
+    require(profit > 0, errorsLib.NO_PROFIT);
 
     // Get pair address
     address pairAddress = IUniswapV2Factory(_sourceFactory).getPair(_tokenPay, _tokenSwap);
 
+
     // Revert if invalid pair address
-    require(pairAddress != address(0), 'Invalid pair address');
+    require(pairAddress != address(0), errorsLib.INVALID_PAIR_ADDRESS);
 
     address token0 = IUniswapV2Pair(pairAddress).token0();
     address token1 = IUniswapV2Pair(pairAddress).token1();
     
     // Revert invalid token
-    require(token0 != address(0) && token1 != address(0), 'Invalid pair token');
+    require(token0 != address(0) && token1 != address(0), errorsLib.INVALID_PAIR_TOKEN);
 
     IUniswapV2Pair(pairAddress).swap(
       _tokenSwap == token0 ? _tokenBorrowAmount : 0,
@@ -55,6 +59,9 @@ contract Flashbot {
       address(this),
       abi.encode(_sourceRouter, _targetRouter)
     );
+
+    emit SwapSuccess(_tokenPay, _tokenSwap, _amountTokenPay);
+
   }
 
   function checkProfitable(
@@ -75,6 +82,8 @@ contract Flashbot {
     uint amountOut = IUniswapV2Router02(_sourceRouter).getAmountsOut(_amountTokenPay, path1)[1];
     uint amountRepay = IUniswapV2Router02(_targetRouter).getAmountsOut(amountOut, path2)[1];
 
+    emit IsProfit(int(amountRepay - _amountTokenPay), amountOut);
+
     return (
       int(amountRepay - _amountTokenPay),
       amountOut
@@ -88,7 +97,7 @@ contract Flashbot {
     bytes calldata _data
   ) internal {
 
-    require(_sender == owner, 'Invalid Sender');
+    require(_sender == owner, errorsLib.INVALID_SENDER);
     // Get an amount of token that you have exchanged
     uint amountToken = _amount0 == 0 ? _amount1 : _amount0;
 
@@ -108,7 +117,7 @@ contract Flashbot {
     path1[1] = path2[0] = buyToken;
 
     (address sourceRouter, address targetRouter) = abi.decode(_data, (address, address));
-    require(sourceRouter != address(0) && targetRouter != address(0), 'Empty Source/Target Router');
+    require(sourceRouter != address(0) && targetRouter != address(0), errorsLib.EMPTY_SOURCE_TARGET_ROUTER);
 
     // ERC20 token that we will sell for other token
     IERC20 token = IERC20(sellToken);
@@ -128,7 +137,7 @@ contract Flashbot {
     )[1];
 
     // Revert if the receiced amount is less than required amount
-    require(amountReceived > amountRequired, 'Not enough received amount');
+    require(amountReceived > amountRequired, errorsLib.NOT_ENOUGH_RECEIVED_AMOUNT);
 
     IERC20 otherToken = IERC20(buyToken);
 
