@@ -79,6 +79,8 @@ function setUp() public {
         vm.selectFork(sepoliaFork);
         assertEq(vm.activeFork(), sepoliaFork);
 
+        vm.rollFork(19_196_173);
+
         vm.deal(address(alice), 100 ether);
 
         console.log("balance of alice");
