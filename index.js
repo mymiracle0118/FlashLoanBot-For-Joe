@@ -269,5 +269,3 @@ const init = async () => {
 };
 
 init();
-
-

@@ -16,8 +16,7 @@ import './interfaces/IUniswapV2Router02.sol';
 contract Flashbot {
 
   address public owner;
-  event SwapSuccess(address indexed fromToken, address indexed toToken, uint256 inAmount);
-  event IsProfit(int profit, uint amountOut);
+  event FlashSwapSuccess(address indexed fromToken, address indexed toToken, uint256 inAmount);
 
   constructor() {
     owner = msg.sender;
@@ -60,7 +59,7 @@ contract Flashbot {
       abi.encode(_sourceRouter, _targetRouter)
     );
 
-    emit SwapSuccess(_tokenPay, _tokenSwap, _amountTokenPay);
+    emit FlashSwapSuccess(_tokenPay, _tokenSwap, _amountTokenPay);
 
   }
 
@@ -81,8 +80,6 @@ contract Flashbot {
 
     uint amountOut = IUniswapV2Router02(_sourceRouter).getAmountsOut(_amountTokenPay, path1)[1];
     uint amountRepay = IUniswapV2Router02(_targetRouter).getAmountsOut(amountOut, path2)[1];
-
-    emit IsProfit(int(amountRepay - _amountTokenPay), amountOut);
 
     return (
       int(amountRepay - _amountTokenPay),
@@ -197,5 +194,4 @@ contract Flashbot {
   }
 
   receive() external payable {}
-
 }
