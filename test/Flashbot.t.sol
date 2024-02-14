@@ -10,13 +10,13 @@ import "./mocks/MockUniswapV2Router02.sol";
 import "./mocks/MockUniswapV2Factory.sol";
 //import "./mocks/MockUniswapV2Pair.sol";
 // import {StdCheats} from "forge-std/StdCheats.sol";
-import '../src/library/UniswapV2Library.sol';
-import '../src/interfaces/IERC20.sol';
-import '../src/interfaces/IUniswapV2Callee.sol';
-import '../src/interfaces/IUniswapV2Pair.sol';
-import '../src/interfaces/IUniswapV2Factory.sol';
+import 'src/library/UniswapV2Library.sol';
+import 'src/interfaces/IERC20.sol';
+import 'src/interfaces/IUniswapV2Callee.sol';
+import 'src/interfaces/IUniswapV2Pair.sol';
+import 'src/interfaces/IUniswapV2Factory.sol';
 // import '../src/interfaces/IUniswapV2Router01.sol';
-import {Flashbot} from '../src/Flashbot.sol';
+import {Flashbot} from 'src/Flashbot.sol';
 
 contract FlashbotTest is Test {
     Flashbot flashbot;

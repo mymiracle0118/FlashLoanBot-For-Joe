@@ -12,6 +12,7 @@ artifacts/
 typechain/
 # Docs
 docs/
+broadcast/
 
 # Dotenv file
 .env
