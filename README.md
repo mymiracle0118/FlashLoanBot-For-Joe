@@ -1,10 +1,22 @@
 # Flashloan Bot
 
+## Installation
 
+```shell
+forge install
+npm install
+```
+
+## Setup env
+
+Convert .env example to .env file.
+Wrote all information for env
 
 ## Deploy and verify
 
 ```shell
-forge create --rpc-url <rpc url> --private-key <your private key> --etherscan-api-key <etherscan api key> --verify <contract>
+npm run deployToSepolia
+npm run deployToEthereum
+npm run deployToBsc
+npm run deployToPolygon
 ```
-
