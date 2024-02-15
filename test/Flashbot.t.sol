@@ -10,13 +10,13 @@ import "./mocks/MockUniswapV2Router02.sol";
 import "./mocks/MockUniswapV2Factory.sol";
 //import "./mocks/MockUniswapV2Pair.sol";
 // import {StdCheats} from "forge-std/StdCheats.sol";
-import 'src/library/UniswapV2Library.sol';
-import 'src/interfaces/IERC20.sol';
-import 'src/interfaces/IUniswapV2Callee.sol';
-import 'src/interfaces/IUniswapV2Pair.sol';
-import 'src/interfaces/IUniswapV2Factory.sol';
+import "src/library/UniswapV2Library.sol";
+import "src/interfaces/IERC20.sol";
+import "src/interfaces/IUniswapV2Callee.sol";
+import "src/interfaces/IUniswapV2Pair.sol";
+import "src/interfaces/IUniswapV2Factory.sol";
 // import '../src/interfaces/IUniswapV2Router01.sol';
-import {Flashbot} from 'src/Flashbot.sol';
+import {Flashbot} from "src/Flashbot.sol";
 
 contract FlashbotTest is Test {
     Flashbot flashbot;
@@ -39,6 +39,9 @@ contract FlashbotTest is Test {
 
     uint256 internal sepoliaFork;
     string internal SEPOLIA_RPC_URL = vm.envString("SEPOLIA_RPC_URL");
+
+    address owner = vm.envAddress("BOT_OWNER");
+
     // Mock other components as necessary
 
     // function setUp() public {
@@ -52,30 +55,27 @@ contract FlashbotTest is Test {
     //     flashbot = new Flashbot();
     // }
 
-function setUp() public {
-
-    mainnetFork = vm.createFork(MAINNET_RPC_URL);
-    optimsmFork = vm.createFork(OPTIMISM_RPC_URL);
-    sepoliaFork = vm.createFork(SEPOLIA_RPC_URL);
-    // Deploy simplified mock contracts
-    mockFactory = new MockUniswapV2Factory();
-    mockSourceRouter = new MockUniswapV2Router02();
-    mockTargetRouter = new MockUniswapV2Router02();
-    flashbot = new Flashbot();
-    // Setup mock return values
-    address[] memory path = new address[](2);
-    path[0] = address(tokenPay);
-    path[1] = address(tokenSwap);
-    uint[] memory amountsOut = new uint[](2);
-    amountsOut[0] = amountTokenPay;
-    amountsOut[1] = mockedAmountOut; // The amount you expect to receive after the swap
-    mockSourceRouter.setMockedAmountsOutMultiple(path, amountsOut);
-    // Similar setup for mockTargetRouter if needed
-}
-
+    function setUp() public {
+        mainnetFork = vm.createFork(MAINNET_RPC_URL);
+        optimsmFork = vm.createFork(OPTIMISM_RPC_URL);
+        sepoliaFork = vm.createFork(SEPOLIA_RPC_URL);
+        // Deploy simplified mock contracts
+        mockFactory = new MockUniswapV2Factory();
+        mockSourceRouter = new MockUniswapV2Router02();
+        mockTargetRouter = new MockUniswapV2Router02();
+        flashbot = new Flashbot(owner);
+        // Setup mock return values
+        address[] memory path = new address[](2);
+        path[0] = address(tokenPay);
+        path[1] = address(tokenSwap);
+        uint[] memory amountsOut = new uint[](2);
+        amountsOut[0] = amountTokenPay;
+        amountsOut[1] = mockedAmountOut; // The amount you expect to receive after the swap
+        mockSourceRouter.setMockedAmountsOutMultiple(path, amountsOut);
+        // Similar setup for mockTargetRouter if needed
+    }
 
     function testExecuteArbitrage() public {
-
         vm.selectFork(sepoliaFork);
         assertEq(vm.activeFork(), sepoliaFork);
 
@@ -102,12 +102,12 @@ function setUp() public {
         // Execute arbitrage function
         vm.startPrank(address(flashbot));
         flashbot.executeArbitrage(
-            block.number + 100, 
-            tokenPay, 
-            tokenSwap, 
-            amountTokenPay, 
-            sourceRouter, 
-            targetRouter, 
+            block.number + 100,
+            tokenPay,
+            tokenSwap,
+            amountTokenPay,
+            sourceRouter,
+            targetRouter,
             sourceFactory
         );
         vm.stopPrank();
@@ -126,10 +126,10 @@ function setUp() public {
 
         // Execute checkProfitable function
         (int profit, uint tokenBorrowAmount) = flashbot.checkProfitable(
-            tokenPay, 
-            tokenSwap, 
-            amountTokenPay, 
-            sourceRouter, 
+            tokenPay,
+            tokenSwap,
+            amountTokenPay,
+            sourceRouter,
             targetRouter
         );
 

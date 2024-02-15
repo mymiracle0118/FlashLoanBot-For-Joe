@@ -2,196 +2,259 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-import './library/UniswapV2Library.sol';
-import './library/errorsLib.sol';
-import './interfaces/IERC20.sol';
+import "./library/UniswapV2Library.sol";
+import "./library/errorsLib.sol";
+import "./interfaces/IERC20.sol";
 //import './interfaces/IUniswapV2Pair.sol';
-import './interfaces/IUniswapV2Factory.sol';
-import './interfaces/IUniswapV2Router02.sol';
+import "./interfaces/IUniswapV2Factory.sol";
+import "./interfaces/IUniswapV2Router02.sol";
 
 /**
   @author Iwaki Hiroto
  */
 
 contract Flashbot {
-
-  address public owner;
-  event FlashSwapSuccess(address indexed fromToken, address indexed toToken, uint256 inAmount);
-
-  constructor() {
-    owner = msg.sender;
-  }
-
-  function executeArbitrage(
-    uint _maxBlockNumber,
-    address _tokenPay, // Source token
-    address _tokenSwap, // Destination token that we get by swap from source token
-    uint _amountTokenPay, // Gwei value of source token amount
-    address _sourceRouter,
-    address _targetRouter,
-    address _sourceFactory
-  ) external {
-    require(block.number <= _maxBlockNumber, errorsLib.OUT_OF_BLOCK);
-
-    // Recheck profitable
-    (int profit, uint _tokenBorrowAmount) = checkProfitable(_tokenPay, _tokenSwap, _amountTokenPay, _sourceRouter, _targetRouter);
-
-    // Revert if no profit
-    require(profit > 0, errorsLib.NO_PROFIT);
-
-    // Get pair address
-    address pairAddress = IUniswapV2Factory(_sourceFactory).getPair(_tokenPay, _tokenSwap);
-
-
-    // Revert if invalid pair address
-    require(pairAddress != address(0), errorsLib.INVALID_PAIR_ADDRESS);
-
-    address token0 = IUniswapV2Pair(pairAddress).token0();
-    address token1 = IUniswapV2Pair(pairAddress).token1();
-    
-    // Revert invalid token
-    require(token0 != address(0) && token1 != address(0), errorsLib.INVALID_PAIR_TOKEN);
-
-    IUniswapV2Pair(pairAddress).swap(
-      _tokenSwap == token0 ? _tokenBorrowAmount : 0,
-      _tokenSwap == token1 ? _tokenBorrowAmount : 0,
-      address(this),
-      abi.encode(_sourceRouter, _targetRouter)
+    address public owner;
+    event FlashSwapSuccess(
+        address indexed fromToken,
+        address indexed toToken,
+        uint256 inAmount
     );
 
-    emit FlashSwapSuccess(_tokenPay, _tokenSwap, _amountTokenPay);
+    constructor(address _owner) {
+        owner = _owner;
+    }
 
-  }
+    function executeArbitrage(
+        uint _maxBlockNumber,
+        address _tokenPay, // Source token
+        address _tokenSwap, // Destination token that we get by swap from source token
+        uint _amountTokenPay, // Gwei value of source token amount
+        address _sourceRouter,
+        address _targetRouter,
+        address _sourceFactory
+    ) external {
+        require(block.number <= _maxBlockNumber, errorsLib.OUT_OF_BLOCK);
 
-  function checkProfitable(
-    address _tokenPay, // Source token
-    address _tokenSwap, // Destination token that we get by swap from source token
-    uint _amountTokenPay, // Gwei value of source token amount
-    address _sourceRouter,
-    address _targetRouter
-  ) public view returns (int, uint) {
-    address[] memory path1 = new address[](2);
-    address[] memory path2 = new address[](2);
+        // Recheck profitable
+        (int profit, uint _tokenBorrowAmount) = checkProfitable(
+            _tokenPay,
+            _tokenSwap,
+            _amountTokenPay,
+            _sourceRouter,
+            _targetRouter
+        );
 
-    // path1 is the forwarding exchange from source token to swapped token
-    path1[0] = path2[1] = _tokenPay;
-    // path2 is the backward exchange from swapeed token to source token
-    path1[1] = path2[0] = _tokenSwap;
+        // Revert if no profit
+        require(profit > 0, errorsLib.NO_PROFIT);
 
-    uint amountOut = IUniswapV2Router02(_sourceRouter).getAmountsOut(_amountTokenPay, path1)[1];
-    uint amountRepay = IUniswapV2Router02(_targetRouter).getAmountsOut(amountOut, path2)[1];
+        // Get pair address
+        address pairAddress = IUniswapV2Factory(_sourceFactory).getPair(
+            _tokenPay,
+            _tokenSwap
+        );
 
-    return (
-      int(amountRepay - _amountTokenPay),
-      amountOut
-    );
-  }
-  
-  function _execute(
-    address _sender,
-    uint _amount0,
-    uint _amount1,
-    bytes calldata _data
-  ) internal {
+        // Revert if invalid pair address
+        require(pairAddress != address(0), errorsLib.INVALID_PAIR_ADDRESS);
 
-    require(_sender == owner, errorsLib.INVALID_SENDER);
-    // Get an amount of token that you have exchanged
-    uint amountToken = _amount0 == 0 ? _amount1 : _amount0;
+        address token0 = IUniswapV2Pair(pairAddress).token0();
+        address token1 = IUniswapV2Pair(pairAddress).token1();
 
-    IUniswapV2Pair iUniswapV2Pair = IUniswapV2Pair(msg.sender);
-    address token0 = iUniswapV2Pair.token0();
-    address token1 = iUniswapV2Pair.token1();
+        // Revert invalid token
+        require(
+            token0 != address(0) && token1 != address(0),
+            errorsLib.INVALID_PAIR_TOKEN
+        );
 
-    address[] memory path1 = new address[](2);
-    address[] memory path2 = new address[](2);
+        IUniswapV2Pair(pairAddress).swap(
+            _tokenSwap == token0 ? _tokenBorrowAmount : 0,
+            _tokenSwap == token1 ? _tokenBorrowAmount : 0,
+            address(this),
+            abi.encode(_sourceRouter, _targetRouter)
+        );
 
-    address sellToken = _amount0 == 0 ? token1 : token0;
-    address buyToken = _amount0 == 0 ? token0 : token1;
+        emit FlashSwapSuccess(_tokenPay, _tokenSwap, _amountTokenPay);
+    }
 
-    // path1 is the forwarding exchange from source token to swapped token
-    // path2 is the backward exchange from swapped token to source token
-    path1[0] = path2[1] = sellToken;
-    path1[1] = path2[0] = buyToken;
+    function checkProfitable(
+        address _tokenPay, // Source token
+        address _tokenSwap, // Destination token that we get by swap from source token
+        uint _amountTokenPay, // Gwei value of source token amount
+        address _sourceRouter,
+        address _targetRouter
+    ) public view returns (int, uint) {
+        address[] memory path1 = new address[](2);
+        address[] memory path2 = new address[](2);
 
-    (address sourceRouter, address targetRouter) = abi.decode(_data, (address, address));
-    require(sourceRouter != address(0) && targetRouter != address(0), errorsLib.EMPTY_SOURCE_TARGET_ROUTER);
+        // path1 is the forwarding exchange from source token to swapped token
+        path1[0] = path2[1] = _tokenPay;
+        // path2 is the backward exchange from swapeed token to source token
+        path1[1] = path2[0] = _tokenSwap;
 
-    // ERC20 token that we will sell for other token
-    IERC20 token = IERC20(sellToken);
-    token.approve(targetRouter, amountToken);
+        uint amountOut = IUniswapV2Router02(_sourceRouter).getAmountsOut(
+            _amountTokenPay,
+            path1
+        )[1];
+        uint amountRepay = IUniswapV2Router02(_targetRouter).getAmountsOut(
+            amountOut,
+            path2
+        )[1];
 
-    // Get the amount of needed input token
-    uint amountRequired = IUniswapV2Router02(sourceRouter).getAmountsIn(amountToken, path2)[0];
+        return (int(amountRepay - _amountTokenPay), amountOut);
+    }
 
+    function _execute(
+        address _sender,
+        uint _amount0,
+        uint _amount1,
+        bytes calldata _data
+    ) internal {
+        require(_sender == owner, errorsLib.INVALID_SENDER);
+        // Get an amount of token that you have exchanged
+        uint amountToken = _amount0 == 0 ? _amount1 : _amount0;
 
-    // Swap token and get equivalent otherToken amountRequired as a result
-    uint amountReceived = IUniswapV2Router02(targetRouter).swapExactTokensForTokens(
-      amountToken,
-      amountRequired,
-      path1,
-      address(this),
-      block.timestamp + 60
-    )[1];
+        IUniswapV2Pair iUniswapV2Pair = IUniswapV2Pair(msg.sender);
+        address token0 = iUniswapV2Pair.token0();
+        address token1 = iUniswapV2Pair.token1();
 
-    // Revert if the receiced amount is less than required amount
-    require(amountReceived > amountRequired, errorsLib.NOT_ENOUGH_RECEIVED_AMOUNT);
+        address[] memory path1 = new address[](2);
+        address[] memory path2 = new address[](2);
 
-    IERC20 otherToken = IERC20(buyToken);
+        address sellToken = _amount0 == 0 ? token1 : token0;
+        address buyToken = _amount0 == 0 ? token0 : token1;
 
-    // callback should send the funds to the pair address back
-    otherToken.transfer(msg.sender, amountRequired);
-    // transfer the profit to the owner
-    otherToken.transfer(owner, amountReceived - amountRequired); 
-  }
+        // path1 is the forwarding exchange from source token to swapped token
+        // path2 is the backward exchange from swapped token to source token
+        path1[0] = path2[1] = sellToken;
+        path1[1] = path2[0] = buyToken;
 
-  function pancakeCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        (address sourceRouter, address targetRouter) = abi.decode(
+            _data,
+            (address, address)
+        );
+        require(
+            sourceRouter != address(0) && targetRouter != address(0),
+            errorsLib.EMPTY_SOURCE_TARGET_ROUTER
+        );
 
-  function waultSwapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        // ERC20 token that we will sell for other token
+        IERC20 token = IERC20(sellToken);
+        token.approve(targetRouter, amountToken);
 
-  function uniswapV2Call(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        // Get the amount of needed input token
+        uint amountRequired = IUniswapV2Router02(sourceRouter).getAmountsIn(
+            amountToken,
+            path2
+        )[0];
 
-  // mdex
-  function swapV2Call(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        // Swap token and get equivalent otherToken amountRequired as a result
+        uint amountReceived = IUniswapV2Router02(targetRouter)
+            .swapExactTokensForTokens(
+                amountToken,
+                amountRequired,
+                path1,
+                address(this),
+                block.timestamp + 60
+            )[1];
 
-  // pantherswap
-  function pantherCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        // Revert if the receiced amount is less than required amount
+        require(
+            amountReceived > amountRequired,
+            errorsLib.NOT_ENOUGH_RECEIVED_AMOUNT
+        );
 
-  // jetswap
-  function jetswapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        IERC20 otherToken = IERC20(buyToken);
 
-  // cafeswap
-  function cafeCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+        // callback should send the funds to the pair address back
+        otherToken.transfer(msg.sender, amountRequired);
+        // transfer the profit to the owner
+        otherToken.transfer(owner, amountReceived - amountRequired);
+    }
 
-  function BiswapCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+    function pancakeCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
 
-  function wardenCall(uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-    address sender = msg.sender;
-    _execute(sender, _amount0, _amount1, _data);
-  }
+    function waultSwapCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
 
-  receive() external payable {}
+    function uniswapV2Call(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    // mdex
+    function swapV2Call(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    // pantherswap
+    function pantherCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    // jetswap
+    function jetswapCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    // cafeswap
+    function cafeCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    function BiswapCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    function wardenCall(
+        uint256 _amount0,
+        uint256 _amount1,
+        bytes calldata _data
+    ) external {
+        address sender = msg.sender;
+        _execute(sender, _amount0, _amount1, _data);
+    }
+
+    receive() external payable {}
 }

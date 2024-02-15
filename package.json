@@ -14,7 +14,7 @@
     "test": "npm run test:unit",
     "test:unit": "forge test --match-path ./test/** -vv",
     "test:deploy": "forge test --match-path ./test/FlashbotFactoryTest.t.sol -vv",
-    "test:deploy_sepolia": "forge test --match-path ./test/FlashbotFactorytest.t.sol -vv --match-test testSepoliaDeploy",
+    "test:deploy_sepolia": "forge test --match-path ./test/FlashbotFactoryTest.t.sol -vv --match-test testSepoliaDeploy",
     "deploy": "forge create --private-key YOUR-PRIVATE-KEY --rpc-url ${SEPOLIA_RPC_URL} --verify --etherscan-api-key YOUR-ETHERSCAN-API-KEY src/Flashbot.sol:Flashbot",
     "deployToSepolia": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url https://eth-sepolia.g.alchemy.com/v2/YOUR-KEY -vv",
     "deployToEthereum": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY -vv",

@@ -9,7 +9,6 @@ import "forge-std/console.sol";
 import "forge-std/console2.sol";
 
 contract FlashbotFactoryTest is Test {
-
     FlashbotFactory internal factory;
 
     uint256 internal mainnetFork;
@@ -24,31 +23,36 @@ contract FlashbotFactoryTest is Test {
     address alice = address(1);
 
     function setUp() public {
-    
         mainnetFork = vm.createFork(MAINNET_RPC_URL);
         optimsmFork = vm.createFork(OPTIMISM_RPC_URL);
         sepoliaFork = vm.createFork(SEPOLIA_RPC_URL);
     }
 
     function testSepoliaDeploy() public {
-
         vm.selectFork(sepoliaFork);
         assertEq(vm.activeFork(), sepoliaFork);
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address owner = vm.envAddress("BOT_OWNER");
 
         factory = new FlashbotFactory();
 
         vm.deal(address(alice), 100 ether);
         vm.startPrank(address(alice));
-        
+
         bytes32 salt = keccak256(abi.encode("Flashbot", address(this)));
 
-        bytes memory creationCode = abi.encodePacked(type(Flashbot).creationCode);
+        bytes memory creationCode = abi.encodePacked(
+            type(Flashbot).creationCode,
+            abi.encode(owner)
+        );
 
-        address computedAddress = factory.computeAddress(salt, keccak256(creationCode));
+        address computedAddress = factory.computeAddress(
+            salt,
+            keccak256(creationCode)
+        );
 
-        address deployedAddress = factory.deploy(0, salt , creationCode);
+        address deployedAddress = factory.deploy(0, salt, creationCode);
 
         vm.stopPrank();
 
