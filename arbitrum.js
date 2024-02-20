@@ -11,7 +11,7 @@ const fs = require('fs');
 const util = require('util');
 const request = require('async-request');
 
-var log_file = fs.createWriteStream(__dirname + '/log_arbitrage.txt', { flags: 'w' });
+var log_file = fs.createWriteStream(__dirname + '/log_arbitrum_arbitrage.txt', { flags: 'w' });
 var log_stdout = process.stdout;
 console.log = function (d) {
   log_file.write(util.format(d) + '\n');
@@ -29,18 +29,18 @@ const web3 = new Web3(
   })
 );
 
-const { mainnet: addresses } = require('./addresses');
+const { mainnet: addresses } = require('./addresses/bsc/index.js');
 const { address: admin } = web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 
 const prices = {};
 const addr_bsc = "";
 const flashswap = new web3.eth.Contract(
   Flashswap.abi,
-  addr_bsc
+  process.env.ADDRESS_ARBITRUM
 );
 
-const BNB_MAINNET = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-const BUSD_MAINNET = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
+const ARB_MAINNET = '0x912ce59144191c1204e64559fe8253a0e49e6548';
+const USDT_MAINNET = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
 
 const getPrices = async() => {
   const response = await request('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin,ethereum,bitcoin,tether,usd-coin,busd&vs_currencies=usd');
@@ -61,62 +61,7 @@ const getPrices = async() => {
   return prices;
 }
 
-const pairs = [
-  {
-    name: 'BNB to BUSD, pancake>panther',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.pancake.router,
-    targetRouter: addresses.panther.router,
-    sourceFactory: addresses.pancake.factory,
-  },
-  {
-    name: 'BNB to BUSD, panther>pancake',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.panther.router,
-    targetRouter: addresses.pancake.router,
-    sourceFactory: addresses.panther.factory,
-  },
-  {
-    name: 'BNB to BUSD, pancake>ape',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.pancake.router,
-    targetRouter: addresses.ape.router,
-    sourceFactory: addresses.pancake.factory,
-  },
-  {
-    name: 'BNB to BUSD, ape>pancake',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.ape.router,
-    targetRouter: addresses.pancake.router,
-    sourceFactory: addresses.ape.factory,
-  },
-  {
-    name: 'BNB to BUSD, pancake>bakery',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.pancake.router,
-    targetRouter: addresses.bakery.router,
-    sourceFactory: addresses.pancake.factory,
-  },
-  {
-    name: 'BNB to BUSD, bakery>pancake',
-    amountTokenPay: process.env.BNB_AMOUNT,
-    tokenPay: BNB_MAINNET,
-    tokenSwap: BUSD_MAINNET,
-    sourceRouter: addresses.bakery.router,
-    targetRouter: addresses.pancake.router,
-    sourceFactory: addresses.bakery.factory,
-  }
-];
+const { pairs } = require('./addresses/arbitrum/index.js');
 
 const init = async () => {
   console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
@@ -155,7 +100,7 @@ const init = async () => {
 
     pairs.forEach((pair) => {
       calls.push(async () => {
-        const check = await flashswap.methods.check(pair.tokenPay, pair.tokenSwap, new BigNumber(pair.amountTokenPay * 1e18), pair.sourceRouter, pair.targetRouter).call();
+        const check = await flashswap.methods.checkProfitable(pair.tokenPay, pair.tokenSwap, new BigNumber(pair.amountTokenPay * 1e18), pair.sourceRouter, pair.targetRouter).call();
         const profit = check[0];
 
         let s = pair.tokenPay.toLowerCase(0);
@@ -172,7 +117,7 @@ const init = async () => {
         if (profit > 0) {
           console.log(`[${block.number}] [${new Date().toLocaleString()}]: [${provider}] [${pair.name}] Arbitrage opportunity found! Expected profit: ${(profit / 1e18).toFixed(3)} $${profitUsd.toFixed(2)} - ${percentage.toFixed(2)}%`);
 
-          const tx = flashswap.methods.startArbitrage(
+          const tx = flashswap.methods.executeArbitrage(
               block.number + process.env.BLOCKNUMBER,
               pair.tokenPay,
               pair.tokenSwap,
@@ -191,10 +136,10 @@ const init = async () => {
           }
 
           const myGasPrice = new BigNumber(gasPrice).plus(gasPrice * 0.2212).toString();
-          const txCostBNB = Web3.utils.toBN(estimateGas) * Web3.utils.toBN(myGasPrice);
+          const txCostARB = Web3.utils.toBN(estimateGas) * Web3.utils.toBN(myGasPrice);
 
           // calculate the estimated gas cost in USD
-          let gasCostUsd = (txCostBNB / 1e18) * prices[BNB_MAINNET.toLowerCase()];
+          let gasCostUsd = (txCostARB / 1e18) * prices[ARB_MAINNET.toLowerCase()];
           const profitMinusFeeInUsd = profitUsd - gasCostUsd;
 
           if (profitMinusFeeInUsd < 0.6) {
@@ -205,7 +150,7 @@ const init = async () => {
               duration: `${(performance.now() - start).toFixed(2)} ms`,
               provider: provider,
               myGasPrice: myGasPrice.toString(),
-              txCostBNB: txCostBNB / 1e18,
+              txCostARB: txCostARB / 1e18,
               estimateGas: estimateGas,
             }));
           }
