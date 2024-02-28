@@ -3,9 +3,9 @@ const Web3 = require('web3');
 const BigNumber = require('bignumber.js');
 const { performance } = require('perf_hooks');
 
-const Flashswap = require('./out/Flashbot.sol/Flashbot.json');
-const BlockSubscriber = require('./utils/block_subscriber.js');
-const TransactionSender = require('./utils/transaction_send.js');
+const Flashswap = require('../out/Flashbot.sol/Flashbot.json');
+const BlockSubscriber = require('../utils/block_subscriber.js');
+const TransactionSender = require('../utils/transaction_send.js');
 
 const fs = require('fs');
 const util = require('util');
@@ -29,7 +29,7 @@ const web3 = new Web3(
   })
 );
 
-const { mainnet: addresses } = require('./addresses/bsc/index.js');
+const { mainnet: addresses } = require('../addresses/bsc/index.js');
 const { address: admin } = web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 
 const prices = {};
@@ -57,7 +57,7 @@ const getPrices = async() => {
   return prices;
 }
 
-const { pairs } = require('./addresses/arbitrum/index.js');
+const { pairs } = require('../addresses/arbitrum/index.js');
 
 const init = async () => {
   console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
