@@ -19,7 +19,7 @@ console.log = function (d) {
 };
 
 const web3 = new Web3(
-  new Web3.providers.WebsocketProvider(process.env.WSS_BLOCKS, {
+  new Web3.providers.WebsocketProvider(process.env.ARB_WSS, {
     reconnect: {
       auto: true,
       delay: 5000,
@@ -29,7 +29,7 @@ const web3 = new Web3(
   })
 );
 
-const { mainnet: addresses } = require('../addresses/bsc/index.js');
+const { mainnet: addresses } = require('../addresses/arbitrum/index.js');
 const { address: admin } = web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 
 const prices = {};
@@ -40,7 +40,7 @@ const flashswap = new web3.eth.Contract(
 );
 
 const getPrices = async() => {
-  const response = await request(process.env.COINGECKO_ETH_URL);
+  const response = await request(process.env.COINGECKO_URL);
   const prices = {};
 
   try {
@@ -60,9 +60,10 @@ const getPrices = async() => {
 const { pairs } = require('../addresses/arbitrum/index.js');
 
 const init = async () => {
-  console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
+  console.log('starting: ');
+  console.log(JSON.stringify(pairs.map(p => p.name)));
 
-  const transactionSender = TransactionSender.factory(process.env.WSS_BLOCKS.split(','));
+  const transactionSender = TransactionSender.factory(process.env.ARB_WSS.split(','));
 
   let nonce = await web3.eth.getTransactionCount(admin);
   let gasPrice = await web3.eth.getGasPrice();
