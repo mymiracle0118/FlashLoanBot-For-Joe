@@ -18,7 +18,7 @@
     "deploy": "forge create --private-key YOUR-PRIVATE-KEY --rpc-url ${SEPOLIA_RPC_URL} --verify --etherscan-api-key YOUR-ETHERSCAN-API-KEY src/Flashbot.sol:Flashbot",
     "deployToSepolia": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url https://eth-sepolia.g.alchemy.com/v2/dF3pLDZtI7_HZv7dbnWOIWaLTdy2rKTl -vv",
     "deployToEthereum": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY -vv",
-    "deployToBsc": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url $BSC_RPC_URL -vv",
+    "deployToBsc": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url $BSC_RPC_URL --etherscan-api-key YOUR-ETHERSCAN-API-KEY -vv",
     "deployToPolygon": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url POLYGON_RPC_URL -vv",
     "deployToMumbai": "forge script script/Flashbot.s.sol:FlashbotDeploy --broadcast --verify src/Flashbot.sol:Flashbot --rpc-url https://polygon-mumbai.g.alchemy.com/v2/kEWossoRqA8T4jOG_plinKbAeypW9TRM -vv",
     "verify": "forge verify-contract 0x8b5D246838cfaC0a5b4e72565Cd01676F2B4dBD9 src/Flashbot.sol:Flashbot --verifier-url 'https://mumbai.polygonscan.com/verifyContract' --etherscan-api-key GTXT2BRUT6516I8QHPKXG1JI82MS9NJ2K5 --num-of-optimizations 200 --compiler-version '0.7.6+commit.7338295f' --constructor-args $(cast abi-encode 'constructor(address owner)' owner)",
