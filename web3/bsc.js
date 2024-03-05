@@ -3,9 +3,9 @@ const Web3 = require('web3');
 const BigNumber = require('bignumber.js');
 const { performance } = require('perf_hooks');
 
-const Flashswap = require('./out/Flashbot.sol/Flashbot.json');
-const BlockSubscriber = require('./utils/block_subscriber.js');
-const TransactionSender = require('./utils/transaction_send.js');
+const Flashswap = require('../out/Flashbot.sol/Flashbot.json');
+const BlockSubscriber = require('../utils/block_subscriber.js');
+const TransactionSender = require('../utils/transaction_send.js');
 
 const fs = require('fs');
 const util = require('util');
@@ -19,7 +19,7 @@ console.log = function (d) {
 };
 
 const web3 = new Web3(
-  new Web3.providers.WebsocketProvider(process.env.WSS_BLOCKS, {
+  new Web3.providers.WebsocketProvider(process.env.BSC_WSS, {
     reconnect: {
       auto: true,
       delay: 5000,
@@ -38,7 +38,7 @@ const flashswap = new web3.eth.Contract(
 );
 
 const getPrices = async() => {
-  const response = await request(process.env.COINGECKO_ETH_URL);
+  const response = await request(process.env.COINGECKO_URL);
   const prices = {};
 
   try {
@@ -56,12 +56,13 @@ const getPrices = async() => {
   return prices;
 }
 
-const { pairs } = require('./addresses/bsc/index.js');
+const { pairs } = require('../addresses/bsc/index.js');
 
 const init = async () => {
-  console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
+  console.log('starting: ');
+  console.log(JSON.stringify(pairs.map(p => p.name)));
 
-  const transactionSender = TransactionSender.factory(process.env.WSS_BLOCKS.split(','));
+  const transactionSender = TransactionSender.factory(process.env.BSC_WSS.split(','));
 
   let nonce = await web3.eth.getTransactionCount(admin);
   let gasPrice = await web3.eth.getGasPrice();
