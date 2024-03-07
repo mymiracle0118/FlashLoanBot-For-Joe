@@ -62,7 +62,7 @@ const init = async () => {
   console.log('starting: ');
   console.log(JSON.stringify(pairs.map(p => p.name)));
 
-  const transactionSender = TransactionSender.factory(process.env.BSC_WSS.split(','));
+  const transactionSender = TransactionSender.factory(process.env.BSC_PROVIDERS.split(','));
 
   let nonce = await web3.eth.getTransactionCount(admin);
   let gasPrice = await web3.eth.getGasPrice();
@@ -90,7 +90,7 @@ const init = async () => {
   await handler();
   setInterval(handler, 1000 * 60 * 5);
 
-  const onBlock = async (block, web3, providers) => {
+  const onBlock = async (block, web3, provider) => {
     const start = performance.now();
     const calls = [];
 
@@ -184,6 +184,8 @@ const init = async () => {
               console.error('transaction error', e);
             }
           }
+        } else {
+          console.log('no profit');
         }
 
       });
@@ -205,7 +207,7 @@ const init = async () => {
     }
   };
 
-  BlockSubscriber.subscribe(process.env.WSS_BLOCKS.split(','), onBlock);
+  BlockSubscriber.subscribe(process.env.BSC_PROVIDERS.split(','), onBlock);
 
 };
 

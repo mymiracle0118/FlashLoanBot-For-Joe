@@ -2,8 +2,8 @@ const Web3 = require('web3');
 const { performance } = require('perf_hooks');
 const net = require('net');
 
-module.exports.subscribe = (providers, callback) => {
-  let currentBlock = [0, performance.now()]
+module.exports.subscribe = (providers, callbackFunc) => {
+  let currentBlock = [0, performance.now()];
 
   providers.forEach(provider => {
     let providerName;
@@ -42,18 +42,17 @@ module.exports.subscribe = (providers, callback) => {
     }).on('data', async (block) => {
       const [lastBlock, lastBlockTime] = currentBlock;
       if (block.number <= lastBlock) {
-
+        console.log('====success=====');
         // recover window
         if (lastBlock === block.number && performance.now() - lastBlockTime < 500) {
-          callback(block, web3, providerName);
+          callbackFunc(block, web3, providerName);
         }
 
         return;
       }
 
       currentBlock = [block.number, performance.now()];
-
-      callback(block, web3, providerName);
+      callbackFunc(block, web3, providerName);
     }).on('error', error => {
       console.error('error', providerName, error);
     }).on('close', e => {
