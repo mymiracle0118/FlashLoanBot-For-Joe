@@ -1,0 +1,28 @@
+starting: 
+["BNB to BUSD, pancake>panther","BNB to BUSD, panther>pancake","BNB to BUSD, pancake>ape","BNB to BUSD, ape>pancake","BNB to BUSD, pancake>bakery","BNB to BUSD, bakery>pancake"]
+started: wallet 0x599C472f1c52e44D8cFFa6Dc9AEbBab0fA5269Ba - gasPrice 1000000000 - contract owner: 0x7f066AE0224cC4035699505a2875746cBCDFb482
+[bsc-rpc.publicnode.com] You are connected on 0xcea8431d9f31ea5dd1cf4f67348e5733
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>panther] Arbitrage checked! Expected profit: -991.215 $-535256.35 - -99.12%
+no profit
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>ape] Arbitrage checked! Expected profit: -676.450 $-365283.23 - -67.65%
+no profit
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, bakery>pancake] Arbitrage checked! Expected profit: -903.461 $-487868.80 - -90.35%
+no profit
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, ape>pancake] Arbitrage checked! Expected profit: -676.980 $-365569.26 - -67.70%
+no profit
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>bakery] Arbitrage checked! Expected profit: -902.953 $-487594.83 - -90.30%
+no profit
+[36894649] [3/12/2024, 4:23:19 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, panther>pancake] Arbitrage checked! Expected profit: -991.284 $-535293.29 - -99.13%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>panther] Arbitrage checked! Expected profit: -991.215 $-535256.35 - -99.12%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, panther>pancake] Arbitrage checked! Expected profit: -991.284 $-535293.29 - -99.13%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>ape] Arbitrage checked! Expected profit: -676.450 $-365283.23 - -67.65%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, ape>pancake] Arbitrage checked! Expected profit: -676.980 $-365569.26 - -67.70%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, bakery>pancake] Arbitrage checked! Expected profit: -903.461 $-487868.80 - -90.35%
+no profit
+[36894650] [3/12/2024, 4:23:22 AM]: [bsc-rpc.publicnode.com] [BNB to BUSD, pancake>bakery] Arbitrage checked! Expected profit: -902.953 $-487594.83 - -90.30%
+no profit
